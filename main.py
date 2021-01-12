@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import random
-from functools import reduce
+from scipy import stats
 
 portfolio_stocks = ['VMC', 'EMR', 'CSX', 'UNP']
 num_of_stocks = len(portfolio_stocks)
@@ -49,7 +49,7 @@ def stocks_returns(data):
         x = np.arange(len(data.index))
 
         # calculating the stock correlation
-        r = np.corrcoef(x, stock_data)[0, 1]
+        r = stats.pearsonr(x, stock_data)[0]
 
         mean = np.mean(stock_data)
         std = np.std(stock_data)
@@ -61,7 +61,7 @@ def stocks_returns(data):
         plt.title(f"Returns of {stock_name} per day")
         plt.xlabel("Returns value (percentage)")
         plt.text(2.5, 300, r'$\mu={:.3f},\ \sigma={:.3f}$'.format(mean, std))
-        plt.text(2.5, 250, r'$r^2={:.3f}$'.format(r))
+        plt.text(2.5, 250, r'$r={:.3f}$'.format(r))
         plt.grid(True)
         plt.savefig(f"visualizations/{stock_name}_histogram.png")
         plt.clf()
@@ -159,6 +159,8 @@ def calculate_portfolio_probabilities(simulation_data):
     simulated_portfolio_return = simulation_data['Total_Return'].values
     n = len(simulated_portfolio_return)
 
+    # print(np.sort(np.unique(simulated_portfolio_return)))
+
     # calculate probability for 0%
     print(100*'-')
     print("Probability of 0% Return:")
@@ -186,11 +188,16 @@ def calculate_portfolio_probabilities(simulation_data):
     print("{:.3f}".format(mean))
 
     print(100 * '-')
+    t = 1.660
+    mean = np.mean(simulated_portfolio_return)
+    std = np.std(simulated_portfolio_return)
     print("Return's Confidence Interval:")
-    percentile_10th = np.percentile(simulated_portfolio_return, 10)
-    percentile_90th = np.percentile(simulated_portfolio_return, 90)
-    print("P(" + str(round(percentile_10th, 3)) + " <= mu <= " + str(round(percentile_90th, 3)) + ") = 0.9")
-
+    # percentile_10th = np.percentile(simulated_portfolio_return, 10)
+    # percentile_90th = np.percentile(simulated_portfolio_return, 90)
+    # print("P(" + str(round(percentile_10th, 3)) + " <= mu <= " + str(round(percentile_90th, 3)) + ") = 0.9")
+    lower = mean - t * (std/(np.sqrt(n)))
+    upper = mean + t * (std/(np.sqrt(n)))
+    print("P(" + str(round(lower, 3)) + " <= mu <= " + str(round(upper, 3)) + ") = 0.9")
 
 def ex_1():
     returns_data = load_data()
